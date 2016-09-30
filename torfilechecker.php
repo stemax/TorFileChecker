@@ -138,13 +138,20 @@ class FileChecker
             foreach ($files as $file) {
                 $full_path = $path . DIRECTORY_SEPARATOR . $file->name;
                 $snap_str = $file->ctime_int . '|' . $file->size . '|' . $file->owner . $file->perms . '|' . $file->mtime_int;
+                //echo 'File: '.$full_path.'-'.$snap_str.'<hr>';
+                echo '<div style="cursor:pointer; width: 10px; height: 10px; border-radius: 2px; background-color: #006600; margin: 1px; float: right;" title="'.$full_path.'"></div>';
+                flush();
                 FileChecker::$file_system_snapshot[$full_path] = $snap_str;
             }
         }
+        echo '<div style="width:100%;display:inline-block;border-bottom:1px dotted #c3c3c3;"></div>';
+        flush();
         if (sizeof($folders))
             foreach ($folders as $folder) {
                 $full_path = $path . DIRECTORY_SEPARATOR . $folder->name;
                 $snap_str = $folder->ctime_int . '|' . $folder->size . '|' . $folder->owner . $folder->perms . '|' . $folder->mtime_int;
+                echo '<div style="cursor:pointer; width: 10px; height: 10px; border-radius: 2px; background-color: #788901; margin: 1px; float: left;" title="'.$folder->name.'"></div>';
+                flush();
                 FileChecker::$file_system_snapshot[$full_path] = $snap_str;
                 if ($recursive) self::grabInfo($full_path);
             }
@@ -250,17 +257,23 @@ class FileChecker
 
 $doc_root = FileManager::getRootFolder();
 
-/*
-if (FileChecker::grabInfo($doc_root.DIRECTORY_SEPARATOR.'TorFileChecker'))
+if (ob_get_level()) {
+    ob_end_clean();
+}
+set_time_limit(0);
+header('Content-Type: text/html; charset=utf-8');
+flush();
+
+if (FileChecker::grabInfo($doc_root.DIRECTORY_SEPARATOR.'jml'))
 {
-    FileChecker::saveSnapshot('TorFileChecker');
-}*/
-
-FileChecker::loadSnapshot('file_snapshot_' .'TorFileChecker'.'_'. date('Y-m-d') . '.json');
-FileChecker::compareInfo($doc_root.DIRECTORY_SEPARATOR.'TorFileChecker');
-FileChecker::showDifference();
+    FileChecker::saveSnapshot('TorFileChecker2');
+}
 /*
-
+FileChecker::loadSnapshot('file_snapshot_' .'TorFileChecker'.'_'. date('Y-m-d') . '.json');
+FileChecker::compareInfo($doc_root);
+FileChecker::showDifference();
+*/
+/*
 FileChecker::$latest_snapshot = json_decode(file_get_contents('file_snapshot_' . date('Y-m-d') . '.json'), true);
 FileChecker::compareInfo($doc_root.DIRECTORY_SEPARATOR.'TorFileChecker');
 FileChecker::showDifference();
