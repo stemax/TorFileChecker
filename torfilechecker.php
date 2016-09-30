@@ -35,6 +35,152 @@ class Processing
     }
 }
 
+class showHelper
+{
+
+    public static function displayHeadPart()
+    {
+        ?>
+        <html>
+        <head>
+            <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+            <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css">
+            <script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
+            <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+            <style>
+                .header_3d {
+                    color: #fffffc;
+                    text-shadow: 0 1px 0 #999, 0 2px 0 #888, 0 3px 0 #777, 0 4px 0 #666, 0 5px 0 #555, 0 6px 0 #444, 0 7px 0 #333, 0 8px 7px #001135;
+                }
+                .form-group
+                {
+                    width: 100%;
+                    margin: 5px 3px 3px 5px !important;
+                }
+            </style>
+            <title>TorFileChecker</title>
+        </head>
+        <body>
+        <div class="jumbotron navbar-form">
+        <div class="container">
+        <div class="page-header header_3d"><h1>TorFileChecker</h1></div>
+    <?php
+    }
+
+    public static function displayIndex($doc_root='.')
+    {
+        ?>
+        <div class="row well">
+            <div class="col-md-6">
+                <form method="post" action="torfilechecker.php" name="subform" class="form-horisontal">
+                    <h3>[New snapshot]</h3>
+                    <code>Create new snapshot for selected folders (one level after root folder)</code>
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label" for="snap_name">Name</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" id="snap_name" name="snap_name" placeholder="Snapshot name">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label" for="select_folder">Folder</label>
+
+                        <div class="col-sm-8">
+                            <?php
+                            echo '<select id="select_folder" class="form-control" name="folder">';
+                            echo '<option value="' . $doc_root . '">' . $doc_root . '</option>';
+                            $folders = Processing::sortArrayWithObjects(FileManager::getFolders($doc_root), 'name');
+                            if (sizeof($folders)) {
+                                foreach ($folders as $folder) {
+                                    echo '<option value="' . $doc_root . DIRECTORY_SEPARATOR . $folder->name . '"> -> ' . $folder->name . '</option>';
+                                }
+
+                            }
+                            echo '</select>';
+                            ?>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-offset-2 col-sm-10">
+                            <button class="btn btn-primary btn-lg" type="submit">Generate new snapshot</button>
+                        </div>
+                    </div>
+                    <input type="hidden" name="action" value="create" />
+                </form>
+            </div>
+            <div class="col-md-6">
+                <form method="post" action="torfilechecker.php" name="subform2" class="form-horisontal">
+                    <h3>[Compare snapshot]</h3>
+                    <code>Compare exists snapshots with actual folders/files</code>
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label" for="select_file">Snapshot</label>
+
+                        <div class="col-sm-8">
+                            <?php
+                            echo '<select id="select_file" class="form-control" name="file">';
+                            $files = Processing::sortArrayWithObjects(FileManager::getFiles($doc_root.DIRECTORY_SEPARATOR.Config::$snapshot_path), 'name');
+                            if (sizeof($files)) {
+                                foreach ($files as $file) {
+                                    echo '<option value="' . $file->name . '">' . $file->name . '</option>';
+                                }
+                            }
+                            echo '</select>';
+                            ?>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label" for="compare_folder">Folder</label>
+
+                        <div class="col-sm-8">
+                            <?php
+                            echo '<select id="compare_folder" class="form-control" name="compare_folder">';
+                            echo '<option value="' . $doc_root . '">' . $doc_root . '</option>';
+                            $folders = Processing::sortArrayWithObjects(FileManager::getFolders($doc_root), 'name');
+                            if (sizeof($folders)) {
+                                foreach ($folders as $folder) {
+                                    echo '<option value="' . $doc_root . DIRECTORY_SEPARATOR . $folder->name . '"> -> ' . $folder->name . '</option>';
+                                }
+
+                            }
+                            echo '</select>';
+                            ?>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-offset-2 col-sm-10">
+                            <button class="btn btn-primary btn-lg" type="submit">Compare</button>
+                        </div>
+                    </div>
+                    <input type="hidden" name="action" value="compare" />
+                </form>
+            </div>
+        </div>
+        <?php
+    }
+    public static function displayBottomPart()
+    {
+        ?>
+        </div>
+        </div>
+        <div class="btn btn-primary btn-xs pull-right " disabled="true">Created by SMT</div>
+        </body>
+        </html>
+    <?php
+    }
+
+
+    public static function displayFolderItem($name = '')
+    {
+        //echo '<div style="cursor:pointer; height: 10px; border-radius: 2px; margin: 1px; float: left; font-size:10px; color:#000; padding:1px;" title="' . $name . '">' . $name . '</div>';
+        echo '<code style="float: left;">'.$name.'</code>';
+    }
+
+    public static function displayFileItem($name = '')
+    {
+        $ext = end(explode('.', $name));
+        echo '<div style="background-color: #006600;    border-radius: 2px;    color: #ededed;    cursor: pointer;    float: left;    font-size: 10px;    /*height: 10px;*/    margin: 1px;    /*padding-bottom: 3px;*/    text-align: center;    text-transform: uppercase;    width: ' . (12 + 5 * strlen($ext)) . 'px;" title="' . $name . '">' . $ext . '</div>';
+    }
+}
+
 class FileManager
 {
     private static $errors = [];
@@ -49,7 +195,7 @@ class FileManager
         $folders = [];
         foreach (new \DirectoryIterator($path) as $folder) {
             try {
-                if (!$folder->isDot() && $folder->isDir()) {
+                if (!$folder->isDot() && $folder->isDir() && $folder->getFilename()[0] != '.') {
                     $folder_info = new \stdClass();
                     $folder_info->name = $folder->getFilename();
                     $folder_info->size = $folder->getSize();
@@ -127,19 +273,18 @@ class FileChecker
     private static $changed_files = [];
     private static $new_files = [];
 
-    public static function grabInfo($path, $recursive = true)
+    public static function grabInfo($path, $recursive = true, $padding = 0)
     {
+        $padding += 1;
         $path = Processing::replaceSeparators($path);
         $folders = Processing::sortArrayWithObjects(FileManager::getFolders($path), 'name');
         $files = Processing::sortArrayWithObjects(FileManager::getFiles($path), 'name');
 
-        if (sizeof($files))
-        {
+        if (sizeof($files)) {
             foreach ($files as $file) {
                 $full_path = $path . DIRECTORY_SEPARATOR . $file->name;
                 $snap_str = $file->ctime_int . '|' . $file->size . '|' . $file->owner . $file->perms . '|' . $file->mtime_int;
-                //echo 'File: '.$full_path.'-'.$snap_str.'<hr>';
-                echo '<div style="cursor:pointer; width: 10px; height: 10px; border-radius: 2px; background-color: #006600; margin: 1px; float: right;" title="'.$full_path.'"></div>';
+                showHelper::displayFileItem($file->name);
                 flush();
                 FileChecker::$file_system_snapshot[$full_path] = $snap_str;
             }
@@ -150,10 +295,16 @@ class FileChecker
             foreach ($folders as $folder) {
                 $full_path = $path . DIRECTORY_SEPARATOR . $folder->name;
                 $snap_str = $folder->ctime_int . '|' . $folder->size . '|' . $folder->owner . $folder->perms . '|' . $folder->mtime_int;
-                echo '<div style="cursor:pointer; width: 10px; height: 10px; border-radius: 2px; background-color: #788901; margin: 1px; float: left;" title="'.$folder->name.'"></div>';
+                echo '<div style="float: left; font-size:9px;">&#9568;';
+                for ($i = 0; $i < $padding; $i++) {
+                    echo '&#172; ';
+                }
+                echo '</div>';
+
+                showHelper::displayFolderItem($folder->name);
                 flush();
                 FileChecker::$file_system_snapshot[$full_path] = $snap_str;
-                if ($recursive) self::grabInfo($full_path);
+                if ($recursive) self::grabInfo($full_path, true, $padding);
             }
         return true;
     }
@@ -164,19 +315,15 @@ class FileChecker
         $folders = Processing::sortArrayWithObjects(FileManager::getFolders($path), 'name');
         $files = Processing::sortArrayWithObjects(FileManager::getFiles($path), 'name');
 
-        if (sizeof($files))
-        {
+        if (sizeof($files)) {
             foreach ($files as $file) {
                 $full_path = $path . DIRECTORY_SEPARATOR . $file->name;
                 $snap_str = $file->ctime_int . '|' . $file->size . '|' . $file->owner . $file->perms . '|' . $file->mtime_int;
-                if (isset(FileChecker::$latest_snapshot[$full_path]))
-                {
-                    if ($snap_str != FileChecker::$latest_snapshot[$full_path])
-                    {
+                if (isset(FileChecker::$latest_snapshot[$full_path])) {
+                    if ($snap_str != FileChecker::$latest_snapshot[$full_path]) {
                         FileChecker::$changed_files[$full_path] = [FileChecker::$latest_snapshot[$full_path], $snap_str];
                     }
-                }else
-                {
+                } else {
                     FileChecker::$new_files[$full_path] = $snap_str;
                 }
             }
@@ -187,68 +334,60 @@ class FileChecker
                 $full_path = $path . DIRECTORY_SEPARATOR . $folder->name;
                 $snap_str = $folder->ctime_int . '|' . $folder->size . '|' . $folder->owner . $folder->perms . '|' . $folder->mtime_int;
 
-                if (isset(FileChecker::$latest_snapshot[$full_path]))
-                {
-                    if ($snap_str!= FileChecker::$latest_snapshot[$full_path])
-                    {
+                if (isset(FileChecker::$latest_snapshot[$full_path])) {
+                    if ($snap_str != FileChecker::$latest_snapshot[$full_path]) {
                         FileChecker::$changed_folders[$full_path] = [FileChecker::$latest_snapshot[$full_path], $snap_str];
                     }
-                }else
-                {
+                } else {
                     FileChecker::$new_folders[$full_path] = $snap_str;
                 }
                 self::compareInfo($full_path);
             }
     }
 
-    public static function saveSnapshot($snap_name='')
+    public static function saveSnapshot($snap_name = '')
     {
-        if (!file_exists(FileManager::getRootFolder().Config::$ds.Config::$snapshot_path))
-        {
-            mkdir(FileManager::getRootFolder().Config::$ds.Config::$snapshot_path);
+        if (!file_exists(FileManager::getRootFolder() . Config::$ds . Config::$snapshot_path)) {
+            mkdir(FileManager::getRootFolder() . Config::$ds . Config::$snapshot_path);
         }
-        return file_put_contents(FileManager::getRootFolder().Config::$ds.Config::$snapshot_path.Config::$ds.'file_snapshot_' .$snap_name.'_'. date('Y-m-d') . '.json', json_encode(FileChecker::$file_system_snapshot, TRUE));
+        return file_put_contents(FileManager::getRootFolder() . Config::$ds . Config::$snapshot_path . Config::$ds . 'file_snapshot_' . $snap_name . '_' . date('Y-m-d') . '.json', json_encode(FileChecker::$file_system_snapshot, TRUE));
     }
 
-    public static function loadSnapshot($snap_name='')
+    public static function loadSnapshot($snap_name = '')
     {
-        FileChecker::$latest_snapshot = json_decode(file_get_contents(FileManager::getRootFolder().Config::$ds.Config::$snapshot_path.Config::$ds.$snap_name), true);
+        FileChecker::$latest_snapshot = json_decode(file_get_contents(FileManager::getRootFolder() . Config::$ds . Config::$snapshot_path . Config::$ds . $snap_name), true);
     }
-    
+
     public static function showDifference()
     {
-        echo 'New folders: <b>'.count(FileChecker::$new_folders).'</b><br/>';
-        if (sizeof(FileChecker::$new_folders))
-        {
-            foreach (FileChecker::$new_folders as $nf_path=>$nf_scrap) {
-                echo $nf_path . ' => '.$nf_scrap."<br/>";
+        echo 'New folders: <b>' . count(FileChecker::$new_folders) . '</b><br/>';
+        if (sizeof(FileChecker::$new_folders)) {
+            foreach (FileChecker::$new_folders as $nf_path => $nf_scrap) {
+                echo $nf_path . ' => ' . $nf_scrap . "<br/>";
             }
         }
         echo '<hr/>';
 
-        echo 'Changed folders: <b>'.count(FileChecker::$changed_folders).'</b><br/>';
-        if (sizeof(FileChecker::$changed_folders))
-        {
-            foreach (FileChecker::$changed_folders as $cf_path=>$cf_scrap) {
-                echo $cf_path . ' => '.$cf_scrap[0].'vs'.$cf_scrap[1]."<br/>";
+        echo 'Changed folders: <b>' . count(FileChecker::$changed_folders) . '</b><br/>';
+        if (sizeof(FileChecker::$changed_folders)) {
+            foreach (FileChecker::$changed_folders as $cf_path => $cf_scrap) {
+                echo $cf_path . ' => ' . $cf_scrap[0] . 'vs' . $cf_scrap[1] . "<br/>";
             }
         }
         echo '<hr/>';
 
-        echo 'New files: <b>'.count(FileChecker::$new_files).'</b><br/>';
-        if (sizeof(FileChecker::$new_files))
-        {
-            foreach (FileChecker::$new_files as $nf_path=>$nf_scrap) {
-                echo $nf_path . ' => '.$nf_scrap."<br/>";
+        echo 'New files: <b>' . count(FileChecker::$new_files) . '</b><br/>';
+        if (sizeof(FileChecker::$new_files)) {
+            foreach (FileChecker::$new_files as $nf_path => $nf_scrap) {
+                echo $nf_path . ' => ' . $nf_scrap . "<br/>";
             }
         }
         echo '<hr/>';
 
-        echo 'Changed files: <b>'.count(FileChecker::$changed_files).'</b><br/>';
-        if (sizeof(FileChecker::$changed_files))
-        {
-            foreach (FileChecker::$changed_files as $cf_path=>$cf_scrap) {
-                echo $cf_path . ' => '.$cf_scrap[0].' vs '.$cf_scrap[1]."<br/>";
+        echo 'Changed files: <b>' . count(FileChecker::$changed_files) . '</b><br/>';
+        if (sizeof(FileChecker::$changed_files)) {
+            foreach (FileChecker::$changed_files as $cf_path => $cf_scrap) {
+                echo $cf_path . ' => ' . $cf_scrap[0] . ' vs ' . $cf_scrap[1] . "<br/>";
             }
         }
         echo '<hr/>';
@@ -256,7 +395,6 @@ class FileChecker
 }
 
 $doc_root = FileManager::getRootFolder();
-
 if (ob_get_level()) {
     ob_end_clean();
 }
@@ -264,10 +402,49 @@ set_time_limit(0);
 header('Content-Type: text/html; charset=utf-8');
 flush();
 
-if (FileChecker::grabInfo($doc_root.DIRECTORY_SEPARATOR.'jml'))
+showHelper::displayHeadPart();
+$action = isset($_POST['action'])?$_POST['action']:'';
+switch ($action)
 {
-    FileChecker::saveSnapshot('TorFileChecker2');
+    case 'create':
+        echo '<div class="row well">
+            <div class="col-md-12">';
+        $workFolder = isset($_POST['folder'])?$_POST['folder']:$doc_root;
+        echo '<h3>[System snapshot details for "'.$workFolder.'"]</h3><hr>';
+        showHelper::displayFolderItem($workFolder);
+        flush();
+
+        if (FileChecker::grabInfo($workFolder)) {
+            FileChecker::saveSnapshot(isset($_POST['snap_name'])?$_POST['snap_name']:'TorFileChecker');
+        }
+        echo '</div></div>';
+    break;
+
+    case 'compare':
+        FileChecker::loadSnapshot(isset($_POST['file'])?$_POST['file']:'');
+        FileChecker::compareInfo(isset($_POST['compare_folder'])?$_POST['compare_folder']:$doc_root);
+        FileChecker::showDifference();
+        break;
+
+    default:
+        showHelper::displayIndex($doc_root);
+        break;
 }
+
+showHelper::displayBottomPart();
+flush();
+/*
+
+
+$workFolder = $doc_root . DIRECTORY_SEPARATOR . '35';
+echo '</h3>[System snapshot details]</h3><hr>';
+showHelper::displayFolderItem($workFolder);
+flush();
+
+if (FileChecker::grabInfo($workFolder)) {
+    FileChecker::saveSnapshot('TorFileChecker');
+}
+*/
 /*
 FileChecker::loadSnapshot('file_snapshot_' .'TorFileChecker'.'_'. date('Y-m-d') . '.json');
 FileChecker::compareInfo($doc_root);
@@ -278,4 +455,4 @@ FileChecker::$latest_snapshot = json_decode(file_get_contents('file_snapshot_' .
 FileChecker::compareInfo($doc_root.DIRECTORY_SEPARATOR.'TorFileChecker');
 FileChecker::showDifference();
 */
-?>
+
