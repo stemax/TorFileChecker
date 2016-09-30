@@ -52,8 +52,8 @@ class showHelper
                     color: #fffffc;
                     text-shadow: 0 1px 0 #999, 0 2px 0 #888, 0 3px 0 #777, 0 4px 0 #666, 0 5px 0 #555, 0 6px 0 #444, 0 7px 0 #333, 0 8px 7px #001135;
                 }
-                .form-group
-                {
+
+                .form-group {
                     width: 100%;
                     margin: 5px 3px 3px 5px !important;
                 }
@@ -67,7 +67,7 @@ class showHelper
     <?php
     }
 
-    public static function displayIndex($doc_root='.')
+    public static function displayIndex($doc_root = '.')
     {
         ?>
         <div class="row well">
@@ -75,10 +75,13 @@ class showHelper
                 <form method="post" action="torfilechecker.php" name="subform" class="form-horisontal">
                     <h3>[New snapshot]</h3>
                     <code>Create new snapshot for selected folders (one level after root folder)</code>
+
                     <div class="form-group">
                         <label class="col-sm-4 control-label" for="snap_name">Name</label>
+
                         <div class="col-sm-8">
-                            <input type="text" class="form-control" id="snap_name" name="snap_name" placeholder="Snapshot name">
+                            <input type="text" class="form-control" id="snap_name" name="snap_name"
+                                   placeholder="Snapshot name">
                         </div>
                     </div>
                     <div class="form-group">
@@ -104,20 +107,21 @@ class showHelper
                             <button class="btn btn-primary btn-lg" type="submit">Generate new snapshot</button>
                         </div>
                     </div>
-                    <input type="hidden" name="action" value="create" />
+                    <input type="hidden" name="action" value="create"/>
                 </form>
             </div>
             <div class="col-md-6">
                 <form method="post" action="torfilechecker.php" name="subform2" class="form-horisontal">
                     <h3>[Compare snapshot]</h3>
                     <code>Compare exists snapshots with actual folders/files</code>
+
                     <div class="form-group">
                         <label class="col-sm-4 control-label" for="select_file">Snapshot</label>
 
                         <div class="col-sm-8">
                             <?php
                             echo '<select id="select_file" class="form-control" name="file">';
-                            $files = Processing::sortArrayWithObjects(FileManager::getFiles($doc_root.DIRECTORY_SEPARATOR.Config::$snapshot_path), 'name');
+                            $files = Processing::sortArrayWithObjects(FileManager::getFiles($doc_root . DIRECTORY_SEPARATOR . Config::$snapshot_path), 'name');
                             if (sizeof($files)) {
                                 foreach ($files as $file) {
                                     echo '<option value="' . $file->name . '">' . $file->name . '</option>';
@@ -150,12 +154,13 @@ class showHelper
                             <button class="btn btn-primary btn-lg" type="submit">Compare</button>
                         </div>
                     </div>
-                    <input type="hidden" name="action" value="compare" />
+                    <input type="hidden" name="action" value="compare"/>
                 </form>
             </div>
         </div>
-        <?php
+    <?php
     }
+
     public static function displayBottomPart()
     {
         ?>
@@ -171,7 +176,7 @@ class showHelper
     public static function displayFolderItem($name = '')
     {
         //echo '<div style="cursor:pointer; height: 10px; border-radius: 2px; margin: 1px; float: left; font-size:10px; color:#000; padding:1px;" title="' . $name . '">' . $name . '</div>';
-        echo '<code style="float: left;">'.$name.'</code>';
+        echo '<code style="float: left;">' . $name . '</code>';
     }
 
     public static function displayFileItem($name = '')
@@ -403,26 +408,25 @@ header('Content-Type: text/html; charset=utf-8');
 flush();
 
 showHelper::displayHeadPart();
-$action = isset($_POST['action'])?$_POST['action']:'';
-switch ($action)
-{
+$action = isset($_POST['action']) ? $_POST['action'] : '';
+switch ($action) {
     case 'create':
         echo '<div class="row well">
             <div class="col-md-12">';
-        $workFolder = isset($_POST['folder'])?$_POST['folder']:$doc_root;
-        echo '<h3>[System snapshot details for "'.$workFolder.'"]</h3><hr>';
+        $workFolder = isset($_POST['folder']) ? $_POST['folder'] : $doc_root;
+        echo '<h3>[System snapshot details for "' . $workFolder . '"]</h3><hr>';
         showHelper::displayFolderItem($workFolder);
         flush();
 
         if (FileChecker::grabInfo($workFolder)) {
-            FileChecker::saveSnapshot(isset($_POST['snap_name'])?$_POST['snap_name']:'TorFileChecker');
+            FileChecker::saveSnapshot(isset($_POST['snap_name']) ? $_POST['snap_name'] : 'TorFileChecker');
         }
         echo '</div></div>';
-    break;
+        break;
 
     case 'compare':
-        FileChecker::loadSnapshot(isset($_POST['file'])?$_POST['file']:'');
-        FileChecker::compareInfo(isset($_POST['compare_folder'])?$_POST['compare_folder']:$doc_root);
+        FileChecker::loadSnapshot(isset($_POST['file']) ? $_POST['file'] : '');
+        FileChecker::compareInfo(isset($_POST['compare_folder']) ? $_POST['compare_folder'] : $doc_root);
         FileChecker::showDifference();
         break;
 
