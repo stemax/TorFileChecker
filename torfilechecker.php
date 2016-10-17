@@ -151,7 +151,7 @@ class showHelper
                     </div>
                     <div class="form-group">
                         <div class="col-sm-offset-2 col-sm-10">
-                            <button class="btn btn-primary btn-lg" type="submit">Compare</button>
+                            <button class="btn btn-info btn-lg" type="submit">Compare</button>
                         </div>
                     </div>
                     <input type="hidden" name="action" value="compare"/>
@@ -277,6 +277,8 @@ class FileChecker
     private static $new_folders = [];
     private static $changed_files = [];
     private static $new_files = [];
+    private static $total_files = 0;
+    private static $total_folders = 0;
 
     public static function grabInfo($path, $recursive = true, $padding = 0)
     {
@@ -321,6 +323,7 @@ class FileChecker
         $files = Processing::sortArrayWithObjects(FileManager::getFiles($path), 'name');
 
         if (sizeof($files)) {
+            FileChecker::$total_files += count($files);
             foreach ($files as $file) {
                 $full_path = $path . DIRECTORY_SEPARATOR . $file->name;
                 $snap_str = $file->ctime_int . '|' . $file->size . '|' . $file->owner . $file->perms . '|' . $file->mtime_int;
@@ -335,19 +338,20 @@ class FileChecker
         }
 
         if (sizeof($folders))
-            foreach ($folders as $folder) {
-                $full_path = $path . DIRECTORY_SEPARATOR . $folder->name;
-                $snap_str = $folder->ctime_int . '|' . $folder->size . '|' . $folder->owner . $folder->perms . '|' . $folder->mtime_int;
+            FileChecker::$total_folders += count($folders);
+        foreach ($folders as $folder) {
+            $full_path = $path . DIRECTORY_SEPARATOR . $folder->name;
+            $snap_str = $folder->ctime_int . '|' . $folder->size . '|' . $folder->owner . $folder->perms . '|' . $folder->mtime_int;
 
-                if (isset(FileChecker::$latest_snapshot[$full_path])) {
-                    if ($snap_str != FileChecker::$latest_snapshot[$full_path]) {
-                        FileChecker::$changed_folders[$full_path] = [FileChecker::$latest_snapshot[$full_path], $snap_str];
-                    }
-                } else {
-                    FileChecker::$new_folders[$full_path] = $snap_str;
+            if (isset(FileChecker::$latest_snapshot[$full_path])) {
+                if ($snap_str != FileChecker::$latest_snapshot[$full_path]) {
+                    FileChecker::$changed_folders[$full_path] = [FileChecker::$latest_snapshot[$full_path], $snap_str];
                 }
-                self::compareInfo($full_path);
+            } else {
+                FileChecker::$new_folders[$full_path] = $snap_str;
             }
+            self::compareInfo($full_path);
+        }
     }
 
     public static function saveSnapshot($snap_name = '')
@@ -365,37 +369,121 @@ class FileChecker
 
     public static function showDifference()
     {
-        echo 'New folders: <b>' . count(FileChecker::$new_folders) . '</b><br/>';
+        self::showIndicators();
+
+        echo '<button class="btn btn-info" type="button">New folders: <span class="badge">' . count(FileChecker::$new_folders) . '</span></button><br/>';
         if (sizeof(FileChecker::$new_folders)) {
+            echo '<table class="table table-hover">';
             foreach (FileChecker::$new_folders as $nf_path => $nf_scrap) {
-                echo $nf_path . ' => ' . $nf_scrap . "<br/>";
+                echo '<tr><td><code>'.$nf_path . '</code> </td><td> ' . self::decodeNewScrapInfo($nf_scrap) . "</td></tr>";
             }
+            echo '</table>';
         }
         echo '<hr/>';
 
-        echo 'Changed folders: <b>' . count(FileChecker::$changed_folders) . '</b><br/>';
+        echo '<button class="btn btn-warning" type="button">Changed folders: <span class="badge">' . count(FileChecker::$changed_folders) . '</span></button><br/>';
         if (sizeof(FileChecker::$changed_folders)) {
+            echo '<table class="table table-hover">';
             foreach (FileChecker::$changed_folders as $cf_path => $cf_scrap) {
-                echo $cf_path . ' => ' . $cf_scrap[0] . 'vs' . $cf_scrap[1] . "<br/>";
+                echo '<tr><td><code>'.$cf_path . '</code> </td><td> ' . self::decodeChangedScrapInfo($cf_scrap[0], $cf_scrap[1]) . "</td></tr>";
             }
+            echo '</table>';
         }
         echo '<hr/>';
 
-        echo 'New files: <b>' . count(FileChecker::$new_files) . '</b><br/>';
+        echo '<button class="btn btn-danger" type="button">New files: <span class="badge">' . count(FileChecker::$new_files) . '</span></button><br/>';
         if (sizeof(FileChecker::$new_files)) {
+            echo '<table class="table table-hover">';
             foreach (FileChecker::$new_files as $nf_path => $nf_scrap) {
-                echo $nf_path . ' => ' . $nf_scrap . "<br/>";
+                echo '<tr><td><code>'.$nf_path . '</code> </td><td> ' . self::decodeNewScrapInfo($nf_scrap) . "</td></tr>";
             }
+            echo '</table>';
         }
         echo '<hr/>';
 
-        echo 'Changed files: <b>' . count(FileChecker::$changed_files) . '</b><br/>';
+        echo '<button class="btn btn-warning" type="button">Changed files: <span class="badge">' . count(FileChecker::$changed_files) . '</span></button><br/>';
         if (sizeof(FileChecker::$changed_files)) {
+            echo '<table class="table table-hover">';
             foreach (FileChecker::$changed_files as $cf_path => $cf_scrap) {
-                echo $cf_path . ' => ' . $cf_scrap[0] . ' vs ' . $cf_scrap[1] . "<br/>";
+                echo '<tr><td><code>'.$cf_path . '</code> </td><td> ' . self::decodeChangedScrapInfo($cf_scrap[0], $cf_scrap[1]) . "</td></tr>";
             }
+            echo '</table>';
         }
         echo '<hr/>';
+    }
+
+    public static function showIndicators()
+    {
+        $new_folders_percent = $changed_folders_percent = 0;
+        $old_folder_percent = 100;
+        if (FileChecker::$total_folders) {
+            $new_folders_percent = round(count(FileChecker::$new_folders) / FileChecker::$total_folders * 100, 2);
+            $changed_folders_percent = round(count(FileChecker::$changed_folders) / FileChecker::$total_folders * 100, 2);
+            $old_folder_percent = 100 - ($new_folders_percent + $changed_folders_percent);
+        }
+        ?>
+        <div class="col-xs-12 col-md-6">
+            <button class="btn" type="button">Folders status indicator <span class="badge">
+            <?= FileChecker::$total_folders; ?></span>
+                <span class="badge btn-warning"><?= count(FileChecker::$changed_folders); ?></span>
+                <span class="badge btn-danger"><?= count(FileChecker::$new_folders); ?></span>
+            </button>
+            <div class="progress">
+                <div class="progress-bar progress-bar-success" style="width: <?= $old_folder_percent; ?>%">
+                    <span class="sr-only2"><?= $old_folder_percent; ?>% not changed</span>
+                </div>
+                <div class="progress-bar progress-bar-warning progress-bar-striped"
+                     style="width: <?= $changed_folders_percent; ?>%">
+                    <span class="sr-only2"><?= $changed_folders_percent; ?>% changed</span>
+                </div>
+                <div class="progress-bar progress-bar-danger" style="width: <?= $new_folders_percent; ?>%">
+                    <span class="sr-only2"><?= $new_folders_percent; ?>% new</span>
+                </div>
+            </div>
+        </div>
+
+        <?php
+        $new_files_percent = $changed_files_percent = 0;
+        $old_file_percent = 100;
+        if (FileChecker::$total_files) {
+            $new_files_percent = round(count(FileChecker::$new_files) / FileChecker::$total_files * 100, 2);
+            $changed_files_percent = round(count(FileChecker::$changed_files) / FileChecker::$total_files * 100, 2);
+            $old_file_percent = 100 - ($new_files_percent + $changed_files_percent);
+        }
+        ?>
+        <div class="col-xs-12 col-md-6">
+            <button class="btn" type="button">Files status indicator <span class="badge">
+            <?= FileChecker::$total_files; ?></span>
+                <span class="badge btn-warning"><?= count(FileChecker::$changed_files); ?></span>
+                <span class="badge btn-danger"><?= count(FileChecker::$new_files); ?></span>
+            </button>
+
+            <div class="progress">
+                <div class="progress-bar progress-bar-success" style="width: <?= $old_file_percent; ?>%">
+                    <span class="sr-only2"><?= $old_file_percent; ?>% not changed</span>
+                </div>
+                <div class="progress-bar progress-bar-warning progress-bar-striped"
+                     style="width: <?= $changed_files_percent; ?>%">
+                    <span class="sr-only2"><?= $changed_files_percent; ?>% changed</span>
+                </div>
+                <div class="progress-bar progress-bar-danger" style="width: <?= $new_files_percent; ?>%">
+                    <span class="sr-only2"><?= $new_files_percent; ?>% new</span>
+                </div>
+            </div>
+        </div>
+    <?php
+    }
+
+    public static function decodeNewScrapInfo($coded_info)
+    {
+        return '<span class="label label-default">'.str_replace('|','</span> <span class="label label-default">',$coded_info).'</span>';
+    }
+
+    public static function decodeChangedScrapInfo($coded_info_org, $coded_info_changed)
+    {
+        $str ='<span class="label label-default">'.str_replace('|','</span> <span class="label label-default">',$coded_info_org).'</span>';
+        $str .=' VS <span class="label label-default">'.str_replace('|','</span> <span class="label label-default">',$coded_info_changed).'</span>';
+        return $str;
     }
 }
 
