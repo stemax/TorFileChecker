@@ -23,13 +23,13 @@ class Processing
         return round(pow(1024, $base - floor($base)), $precision) . ' ' . $suffixes[floor($base)];
     }
 
-    public static function sortArrayWithObjects($array)
+    public static function sortArrayWithObjects($array, $field = 'name')
     {
-        usort($array, function ($a, $b) {
-            if ($a->name == $b->name) {
+        usort($array, function ($a, $b, $field) {
+            if ($a->$field == $b->$field) {
                 return 0;
             }
-            return ($a->name < $b->name) ? -1 : 1;
+            return ($a->$field < $b->$field) ? -1 : 1;
         });
         return $array;
     }
@@ -373,9 +373,9 @@ class FileChecker
 
         echo '<button class="btn btn-info" type="button">New folders: <span class="badge">' . count(FileChecker::$new_folders) . '</span></button><br/>';
         if (sizeof(FileChecker::$new_folders)) {
-            echo '<table class="table table-hover">';
+            echo '<table class="table table-hover" style="font-size: 11px">';
             foreach (FileChecker::$new_folders as $nf_path => $nf_scrap) {
-                echo '<tr><td><code>'.$nf_path . '</code> </td><td> ' . self::decodeNewScrapInfo($nf_scrap) . "</td></tr>";
+                echo '<tr><td><code>' . $nf_path . '</code> </td><td> ' . self::decodeNewScrapInfo($nf_scrap) . "</td></tr>";
             }
             echo '</table>';
         }
@@ -383,9 +383,9 @@ class FileChecker
 
         echo '<button class="btn btn-warning" type="button">Changed folders: <span class="badge">' . count(FileChecker::$changed_folders) . '</span></button><br/>';
         if (sizeof(FileChecker::$changed_folders)) {
-            echo '<table class="table table-hover">';
+            echo '<table class="table table-hover" style="font-size: 11px">';
             foreach (FileChecker::$changed_folders as $cf_path => $cf_scrap) {
-                echo '<tr><td><code>'.$cf_path . '</code> </td><td> ' . self::decodeChangedScrapInfo($cf_scrap[0], $cf_scrap[1]) . "</td></tr>";
+                echo '<tr><td><code>' . $cf_path . '</code> </td><td> ' . self::decodeChangedScrapInfo($cf_scrap[0], $cf_scrap[1]) . "</td></tr>";
             }
             echo '</table>';
         }
@@ -393,9 +393,9 @@ class FileChecker
 
         echo '<button class="btn btn-danger" type="button">New files: <span class="badge">' . count(FileChecker::$new_files) . '</span></button><br/>';
         if (sizeof(FileChecker::$new_files)) {
-            echo '<table class="table table-hover">';
+            echo '<table class="table table-hover" style="font-size: 11px">';
             foreach (FileChecker::$new_files as $nf_path => $nf_scrap) {
-                echo '<tr><td><code>'.$nf_path . '</code> </td><td> ' . self::decodeNewScrapInfo($nf_scrap) . "</td></tr>";
+                echo '<tr><td><code>' . $nf_path . '</code> </td><td> ' . self::decodeNewScrapInfo($nf_scrap) . "</td></tr>";
             }
             echo '</table>';
         }
@@ -403,9 +403,9 @@ class FileChecker
 
         echo '<button class="btn btn-warning" type="button">Changed files: <span class="badge">' . count(FileChecker::$changed_files) . '</span></button><br/>';
         if (sizeof(FileChecker::$changed_files)) {
-            echo '<table class="table table-hover">';
+            echo '<table class="table table-hover" style="font-size: 11px">';
             foreach (FileChecker::$changed_files as $cf_path => $cf_scrap) {
-                echo '<tr><td><code>'.$cf_path . '</code> </td><td> ' . self::decodeChangedScrapInfo($cf_scrap[0], $cf_scrap[1]) . "</td></tr>";
+                echo '<tr><td><code>' . $cf_path . '</code> </td><td> ' . self::decodeChangedScrapInfo($cf_scrap[0], $cf_scrap[1]) . "</td></tr>";
             }
             echo '</table>';
         }
@@ -476,13 +476,13 @@ class FileChecker
 
     public static function decodeNewScrapInfo($coded_info)
     {
-        return '<span class="label label-default">'.str_replace('|','</span> <span class="label label-default">',$coded_info).'</span>';
+        return '<span class="label label-default">' . str_replace('|', '</span> <span class="label label-default">', $coded_info) . '</span>';
     }
 
     public static function decodeChangedScrapInfo($coded_info_org, $coded_info_changed)
     {
-        $str ='<span class="label label-default">'.str_replace('|','</span> <span class="label label-default">',$coded_info_org).'</span>';
-        $str .=' VS <span class="label label-default">'.str_replace('|','</span> <span class="label label-default">',$coded_info_changed).'</span>';
+        $str = '<span class="label label-default">' . str_replace('|', '</span> <span class="label label-default">', $coded_info_org) . '</span>';
+        $str .= ' VS <span class="label label-default">' . str_replace('|', '</span> <span class="label label-default">', $coded_info_changed) . '</span>';
         return $str;
     }
 }
