@@ -1,5 +1,7 @@
 <?php
 namespace TorFileChecker;
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
 class Config
 {
@@ -25,7 +27,7 @@ class Processing
 
     public static function sortArrayWithObjects($array, $field = 'name')
     {
-        usort($array, function ($a, $b, $field) {
+        usort($array, function ($a, $b) use ($field) {
             if ($a->$field == $b->$field) {
                 return 0;
             }
@@ -183,6 +185,54 @@ class showHelper
     {
         $ext = end(explode('.', $name));
         echo '<div style="background-color: #006600;    border-radius: 2px;    color: #ededed;    cursor: pointer;    float: left;    font-size: 10px;    /*height: 10px;*/    margin: 1px;    /*padding-bottom: 3px;*/    text-align: center;    text-transform: uppercase;    width: ' . (12 + 5 * strlen($ext)) . 'px;" title="' . $name . '">' . $ext . '</div>';
+    }
+
+    public static function decodeChangedScrapInfo($coded_info_org, $coded_info_changed)
+    {
+        $coded_info_org_array = explode('|', $coded_info_org);
+        $coded_info_changed_array = explode('|', $coded_info_changed);
+
+        $return_str = '';
+        if (sizeof($coded_info_org_array)) {
+            foreach ($coded_info_org_array as $cp => $coded_info) {
+                $res = '';
+                switch ($cp) {
+                    case 0:
+                        $res = date(Config::$date_format, $coded_info);
+                        break;
+                    case 1:
+                        $res = Processing::formatBytes($coded_info);
+                        break;
+                    default:
+                        $res = $coded_info;
+                        break;
+                }
+                $return_str .= '<span class="label label-default">';
+                $return_str .= $res;
+                $return_str .= '</span> ';
+            }
+        }
+        if (sizeof($coded_info_changed_array)) {
+            $return_str .= ' [VS] ';
+            foreach ($coded_info_changed_array as $cp => $coded_info) {
+                $res = '';
+                switch ($cp) {
+                    case 0:
+                        $res = date(Config::$date_format, $coded_info);
+                        break;
+                    case 1:
+                        $res = Processing::formatBytes($coded_info);
+                        break;
+                    default:
+                        $res = $coded_info;
+                        break;
+                }
+                $return_str .= '<span class="label label-default">';
+                $return_str .= $res;
+                $return_str .= '</span>';
+            }
+        }
+        return $return_str;
     }
 }
 
@@ -385,7 +435,7 @@ class FileChecker
         if (sizeof(FileChecker::$changed_folders)) {
             echo '<table class="table table-hover" style="font-size: 11px">';
             foreach (FileChecker::$changed_folders as $cf_path => $cf_scrap) {
-                echo '<tr><td><code>' . $cf_path . '</code> </td><td> ' . self::decodeChangedScrapInfo($cf_scrap[0], $cf_scrap[1]) . "</td></tr>";
+                echo '<tr><td><code>' . $cf_path . '</code> </td><td> ' . showHelper::decodeChangedScrapInfo($cf_scrap[0], $cf_scrap[1]) . "</td></tr>";
             }
             echo '</table>';
         }
@@ -405,7 +455,7 @@ class FileChecker
         if (sizeof(FileChecker::$changed_files)) {
             echo '<table class="table table-hover" style="font-size: 11px">';
             foreach (FileChecker::$changed_files as $cf_path => $cf_scrap) {
-                echo '<tr><td><code>' . $cf_path . '</code> </td><td> ' . self::decodeChangedScrapInfo($cf_scrap[0], $cf_scrap[1]) . "</td></tr>";
+                echo '<tr><td><code>' . $cf_path . '</code> </td><td> ' . showHelper::decodeChangedScrapInfo($cf_scrap[0], $cf_scrap[1]) . "</td></tr>";
             }
             echo '</table>';
         }
@@ -477,13 +527,6 @@ class FileChecker
     public static function decodeNewScrapInfo($coded_info)
     {
         return '<span class="label label-default">' . str_replace('|', '</span> <span class="label label-default">', $coded_info) . '</span>';
-    }
-
-    public static function decodeChangedScrapInfo($coded_info_org, $coded_info_changed)
-    {
-        $str = '<span class="label label-default">' . str_replace('|', '</span> <span class="label label-default">', $coded_info_org) . '</span>';
-        $str .= ' VS <span class="label label-default">' . str_replace('|', '</span> <span class="label label-default">', $coded_info_changed) . '</span>';
-        return $str;
     }
 }
 
