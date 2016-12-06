@@ -59,6 +59,10 @@ class showHelper
                     width: 100%;
                     margin: 5px 3px 3px 5px !important;
                 }
+
+                body {
+                    font-family: monospace, monospace;
+                }
             </style>
             <title>TorFileChecker</title>
         </head>
@@ -183,7 +187,7 @@ class showHelper
 
     public static function displayFileItem($name = '')
     {
-        $ext = end(explode('.', $name));
+        $ext = end((explode('.', $name)));
         echo '<div style="background-color: #006600;    border-radius: 2px;    color: #ededed;    cursor: pointer;    float: left;    font-size: 10px;    /*height: 10px;*/    margin: 1px;    /*padding-bottom: 3px;*/    text-align: center;    text-transform: uppercase;    width: ' . (12 + 5 * strlen($ext)) . 'px;" title="' . $name . '">' . $ext . '</div>';
     }
 
@@ -195,13 +199,15 @@ class showHelper
         $return_str = '';
         if (sizeof($coded_info_org_array)) {
             foreach ($coded_info_org_array as $cp => $coded_info) {
-                $res = '';
                 switch ($cp) {
                     case 0:
                         $res = date(Config::$date_format, $coded_info);
                         break;
                     case 1:
                         $res = Processing::formatBytes($coded_info);
+                        break;
+                    case 3:
+                        $res = date(Config::$date_format, $coded_info);
                         break;
                     default:
                         $res = $coded_info;
@@ -213,9 +219,8 @@ class showHelper
             }
         }
         if (sizeof($coded_info_changed_array)) {
-            $return_str .= ' [VS] ';
+            $return_str .= '<br/>';
             foreach ($coded_info_changed_array as $cp => $coded_info) {
-                $res = '';
                 switch ($cp) {
                     case 0:
                         $res = date(Config::$date_format, $coded_info);
@@ -223,13 +228,45 @@ class showHelper
                     case 1:
                         $res = Processing::formatBytes($coded_info);
                         break;
+                    case 3:
+                        $res = date(Config::$date_format, $coded_info);
+                        break;
+                    default:
+                        $res = $coded_info;
+                        break;
+                }
+                $return_str .= '<span class="label label-warning">';
+                $return_str .= $res;
+                $return_str .= '</span> ';
+            }
+        }
+        return $return_str;
+    }
+
+
+    public static function decodeNewScrapInfo($coded_info)
+    {
+        $coded_info_array = explode('|', $coded_info);
+        $return_str = '';
+        if (sizeof($coded_info_array)) {
+            foreach ($coded_info_array as $cp => $coded_info) {
+                switch ($cp) {
+                    case 0:
+                        $res = date(Config::$date_format, $coded_info);
+                        break;
+                    case 1:
+                        $res = Processing::formatBytes($coded_info);
+                        break;
+                    case 3:
+                        $res = date(Config::$date_format, $coded_info);
+                        break;
                     default:
                         $res = $coded_info;
                         break;
                 }
                 $return_str .= '<span class="label label-default">';
                 $return_str .= $res;
-                $return_str .= '</span>';
+                $return_str .= '</span> ';
             }
         }
         return $return_str;
@@ -419,13 +456,14 @@ class FileChecker
 
     public static function showDifference()
     {
+        echo '<h3>' . $_POST['file'] . '</h3>';
         self::showIndicators();
-
         echo '<button class="btn btn-info" type="button">New folders: <span class="badge">' . count(FileChecker::$new_folders) . '</span></button><br/>';
         if (sizeof(FileChecker::$new_folders)) {
-            echo '<table class="table table-hover" style="font-size: 11px">';
+            echo '<table class="table table-hover" style="font-size: 12px">';
+            echo '<tr><th>Path</th><th>Info <span class="label label-default">created date</span> <span class="label label-default">size</span> <span class="label label-default">rights</span> <span class="label label-default">modified date</span></th></tr>';
             foreach (FileChecker::$new_folders as $nf_path => $nf_scrap) {
-                echo '<tr><td><code>' . $nf_path . '</code> </td><td> ' . self::decodeNewScrapInfo($nf_scrap) . "</td></tr>";
+                echo '<tr><td><code>' . $nf_path . '</code> </td><td> ' . showHelper::decodeNewScrapInfo($nf_scrap) . "</td></tr>";
             }
             echo '</table>';
         }
@@ -433,7 +471,8 @@ class FileChecker
 
         echo '<button class="btn btn-warning" type="button">Changed folders: <span class="badge">' . count(FileChecker::$changed_folders) . '</span></button><br/>';
         if (sizeof(FileChecker::$changed_folders)) {
-            echo '<table class="table table-hover" style="font-size: 11px">';
+            echo '<table class="table table-hover" style="font-size: 12px">';
+            echo '<tr><th>Path</th><th>Info <span class="label label-default">created date</span> <span class="label label-default">size</span> <span class="label label-default">rights</span> <span class="label label-default">modified date</span></th></tr>';
             foreach (FileChecker::$changed_folders as $cf_path => $cf_scrap) {
                 echo '<tr><td><code>' . $cf_path . '</code> </td><td> ' . showHelper::decodeChangedScrapInfo($cf_scrap[0], $cf_scrap[1]) . "</td></tr>";
             }
@@ -443,9 +482,10 @@ class FileChecker
 
         echo '<button class="btn btn-danger" type="button">New files: <span class="badge">' . count(FileChecker::$new_files) . '</span></button><br/>';
         if (sizeof(FileChecker::$new_files)) {
-            echo '<table class="table table-hover" style="font-size: 11px">';
+            echo '<table class="table table-hover" style="font-size: 12px">';
+            echo '<tr><th>Path</th><th>Info <span class="label label-default">created date</span> <span class="label label-default">size</span> <span class="label label-default">rights</span> <span class="label label-default">modified date</span></th></tr>';
             foreach (FileChecker::$new_files as $nf_path => $nf_scrap) {
-                echo '<tr><td><code>' . $nf_path . '</code> </td><td> ' . self::decodeNewScrapInfo($nf_scrap) . "</td></tr>";
+                echo '<tr><td><code>' . $nf_path . '</code> </td><td> ' . showHelper::decodeNewScrapInfo($nf_scrap) . "</td></tr>";
             }
             echo '</table>';
         }
@@ -453,13 +493,16 @@ class FileChecker
 
         echo '<button class="btn btn-warning" type="button">Changed files: <span class="badge">' . count(FileChecker::$changed_files) . '</span></button><br/>';
         if (sizeof(FileChecker::$changed_files)) {
-            echo '<table class="table table-hover" style="font-size: 11px">';
+            echo '<table class="table table-hover" style="font-size: 12px">';
+            echo '<tr><th>Path</th><th>Info (Original VS Current) <span class="label label-default">created date</span> <span class="label label-default">size</span> <span class="label label-default">rights</span> <span class="label label-default">modified date</span></th></tr>';
             foreach (FileChecker::$changed_files as $cf_path => $cf_scrap) {
                 echo '<tr><td><code>' . $cf_path . '</code> </td><td> ' . showHelper::decodeChangedScrapInfo($cf_scrap[0], $cf_scrap[1]) . "</td></tr>";
             }
             echo '</table>';
         }
         echo '<hr/>';
+
+        echo '<a class="btn pull-right btn-primary" href="torfilechecker.php">Back</a>';
     }
 
     public static function showIndicators()
@@ -523,11 +566,6 @@ class FileChecker
         </div>
     <?php
     }
-
-    public static function decodeNewScrapInfo($coded_info)
-    {
-        return '<span class="label label-default">' . str_replace('|', '</span> <span class="label label-default">', $coded_info) . '</span>';
-    }
 }
 
 $doc_root = FileManager::getRootFolder();
@@ -552,6 +590,7 @@ switch ($action) {
         if (FileChecker::grabInfo($workFolder)) {
             FileChecker::saveSnapshot(isset($_POST['snap_name']) ? $_POST['snap_name'] : 'TorFileChecker');
         }
+        echo '<a class="btn pull-right btn-primary" href="torfilechecker.php">Back</a>';
         echo '</div></div>';
         break;
 
